@@ -69,7 +69,7 @@ namespace BACKGROUND {
 		frame = 0;
 		score = 0;
 		paused = false;
-		
+
 		MUSIC::menu->stop();
 		MUSIC::bgm = MUSIC::engine->play2D(MUSIC::bgm_s, true, false, true);
 	}
@@ -453,7 +453,7 @@ namespace ENEMY {
 
 	void initialize() {
 		for (auto e = enemies.begin(); e != enemies.end(); e++) {
-			delete *e;
+			delete* e;
 		}
 		enemies.clear();
 		difficulty = 60;
@@ -465,7 +465,7 @@ namespace ENEMY {
 		if (count == 0) {
 			enemies.insert(new enemy(frame));
 			if (BACKGROUND::score >= 50) {
-				for (int i = 50; i <= BACKGROUND::score; i += 50) {
+				for (int i = 50; i <= min(1000, BACKGROUND::score); i += 50) {
 					if (rand_p(gen) == 0) {
 						enemies.insert(new enemy(frame));
 					}
@@ -479,21 +479,21 @@ namespace ENEMY {
 			for (BULLET::bullet* b : BULLET::bullets) { // hit by a bullet
 				int x_b = b->getX(), y_b = b->getY();
 				if ((x_b + size_b > (*e)->getX()) &&
-					  (x_b - size_b < ((*e)->getX() + width)) &&
-					  (y_b + size_b > (*e)->getY()) &&
-						(y_b - size_b < ((*e)->getY() + height))) {
+					(x_b - size_b < ((*e)->getX() + width)) &&
+					(y_b + size_b > (*e)->getY()) &&
+					(y_b - size_b < ((*e)->getY() + height))) {
 					erased = true;
 					break;
 				}
 			}
 			if (erased) {
-				delete *e;
+				delete* e;
 				e = enemies.erase(e);
 				BACKGROUND::score++;
 				if (BACKGROUND::score % 5 == 0 && difficulty > 10) { // increase frequency
 					difficulty--;
 				}
-				if (BACKGROUND::score % 20 == 0 && speed < 12) { // increase speed
+				if (BACKGROUND::score % 24 == 0 && speed < 15) { // increase speed
 					speed++;
 				}
 				COVER::level_up(BACKGROUND::score);
@@ -502,9 +502,9 @@ namespace ENEMY {
 				bool lost = false;
 				int x_c = CHARACTER::x + CHARACTER::width / 2, y_c = CHARACTER::y + CHARACTER::height / 2;
 				if ((x_c > (*e)->getX()) &&
-					  (x_c < ((*e)->getX() + width)) &&
-					  (y_c > (*e)->getY()) &&
-						(y_c < ((*e)->getY() + height))) {
+					(x_c < ((*e)->getX() + width)) &&
+					(y_c > (*e)->getY()) &&
+					(y_c < ((*e)->getY() + height))) {
 					lost = true;
 				}
 				if (lost) {
@@ -732,9 +732,9 @@ namespace COVER {
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 130:
-			text_o = L"LEVEL UP! Bullet size ++";
+			text_o = L"LEVEL UP! Move speed ++";
 			frame_display = 0;
-			BULLET::size++;
+			CHARACTER::speed++;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 145:
@@ -744,72 +744,60 @@ namespace COVER {
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 160:
-			text_o = L"LEVEL UP! Bullet size ++";
+			text_o = L"LEVEL UP! Bullet speed ++";
 			frame_display = 0;
-			BULLET::size++;
+			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 175:
-			text_o = L"LEVEL UP! Bullet speed ++";
+			text_o = L"LEVEL UP! Bullet size ++";
 			frame_display = 0;
-			BULLET::speed += 0.01f;
+			BULLET::size++;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 190:
-			text_o = L"LEVEL UP! Bullet size ++";
+			text_o = L"LEVEL UP! Bullet speed ++";
 			frame_display = 0;
-			BULLET::size++;
+			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 205:
+		case 210:
 			text_o = L"LEVEL UP! Move speed ++";
 			frame_display = 0;
 			CHARACTER::speed++;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 220:
+		case 230:
 			text_o = L"LEVEL UP! Bullet size ++";
 			frame_display = 0;
 			BULLET::size++;
-			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
-			break;
-		case 235:
-			text_o = L"LEVEL UP! Bullet speed ++";
-			frame_display = 0;
-			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
 		case 250:
-			text_o = L"LEVEL UP! Bullet size ++";
-			frame_display = 0;
-			BULLET::size++;
-			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
-			break;
-		case 275:
-			text_o = L"LEVEL UP! Move speed ++";
-			frame_display = 0;
-			CHARACTER::speed++;
-			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
-			break;
-		case 300:
-			text_o = L"LEVEL UP! Bullet amount ++";
-			frame_display = 0;
-			BULLET::generate(5);
-			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
-			break;
-		case 325:
-			text_o = L"LEVEL UP! Bullet size ++";
-			frame_display = 0;
-			BULLET::size++;
-			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
-			break;
-		case 350:
 			text_o = L"LEVEL UP! Bullet speed ++";
 			frame_display = 0;
 			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 375:
+		case 270:
+			text_o = L"LEVEL UP! Bullet size ++";
+			frame_display = 0;
+			BULLET::size++;
+			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
+			break;
+		case 300:
+			text_o = L"LEVEL UP! Move speed ++";
+			frame_display = 0;
+			CHARACTER::speed++;
+			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
+			break;
+		case 330:
+			text_o = L"LEVEL UP! Bullet amount ++";
+			frame_display = 0;
+			BULLET::generate(6);
+			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
+			break;
+		case 360:
 			text_o = L"LEVEL UP! Bullet size ++";
 			frame_display = 0;
 			BULLET::size++;
@@ -821,19 +809,31 @@ namespace COVER {
 			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 425:
-			text_o = L"LEVEL UP! Bullet size ++";
+		case 450:
+			text_o = L"LEVEL UP! Move speed ++";
 			frame_display = 0;
-			BULLET::size++;
+			CHARACTER::speed++;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 450:
+		case 500:
 			text_o = L"LEVEL UP! Bullet speed ++";
 			frame_display = 0;
 			BULLET::speed += 0.01f;
 			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
 			break;
-		case 500:
+		case 570:
+			text_o = L"LEVEL UP! Bullet size ++";
+			frame_display = 0;
+			BULLET::size++;
+			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
+			break;
+		case 650:
+			text_o = L"LEVEL UP! Bullet speed ++";
+			frame_display = 0;
+			BULLET::speed += 0.01f;
+			MUSIC::levelup = MUSIC::engine->play2D(MUSIC::levelup_s, false, false, true);
+			break;
+		case 750:
 			text_o = L"LEVEL UP! Move speed ++";
 			frame_display = 0;
 			CHARACTER::speed++;
@@ -924,8 +924,8 @@ int main() {
 
 		delta_t = GetTickCount() - start;
 
-		if (delta_t < 25) {
-			Sleep(25 - delta_t);
+		if (delta_t < 24) {
+			Sleep(24 - delta_t);
 		}
 	}
 
