@@ -8,6 +8,8 @@
 #include <iostream>
 #include <irrKlang.h>
 
+#include "button.h"
+
 #pragma comment(lib, "MSIMG32.LIB")
 #pragma comment(lib, "Winmm.lib")
 
@@ -342,7 +344,7 @@ namespace BULLET {
 	}
 }
 
-namespace COVER { bool running = false; bool lost = true; void lose(int wait = 0, bool music = false); void level_up(int score); }
+namespace COVER { void lose(int wait = 0, bool music = false); void level_up(int score); }
 
 namespace ENEMY {
 	int count = 0;
@@ -540,10 +542,16 @@ namespace ENEMY {
 void initialize();
 
 namespace COVER {
+	bool running = false;
 	IMAGE cover;
 	int frame_display = 0;
 	std::wstring text_o;
 	const int frame_wait = 40;
+	IMAGE start_idle, start_hover, start_click;
+	IMAGE quit_idle, quit_hover, quit_click;
+	bool exit = false;
+	BUTTON::button start_button, quit_button;
+	std::vector<BUTTON::button*> buttons;
 
 	unsigned char alpha(int frame) {
 		if (frame <= 120) {
@@ -551,13 +559,12 @@ namespace COVER {
 			return static_cast<unsigned char>(255.0 * f * f * f / 5.0 * 3.0);
 		}
 		else {
-			double f = static_cast<double>(300 - frame) / 180.0;
+			double f = static_cast<double>(180 - frame) / 60.0;
 			return static_cast<unsigned char>(255.0 * (1.0 - f * f * f / 5.0 * 2.0));
 		}
 	}
 
 	void enter() {
-		lost = true;
 		running = false;
 		text_o = L"";
 
@@ -566,7 +573,7 @@ namespace COVER {
 		MUSIC::menu = MUSIC::engine->play2D(MUSIC::menu_s, true, false, true);
 
 		int frame = 0;
-		while (frame < 300) {
+		while (frame <= 180) {
 			DWORD start = GetTickCount();
 			cleardevice();
 			putimageAlpha(0, 0, &cover, alpha(frame));
@@ -577,20 +584,46 @@ namespace COVER {
 				Sleep(16 - delay);
 			}
 		}
+
+		BUTTON::enable(buttons);
+	}
+
+	void quit() {
+		exit = true;
+	}
+
+	void initialize();
+
+	void start() {
+		running = true;
+		frame_display = 0;
+		::initialize();
 	}
 
 	void load() {
 		loadimage(&cover, _T("img/cover.png"));
+		loadimage(&start_idle, _T("img/ui_start_idle.png"));
+		loadimage(&start_hover, _T("img/ui_start_hovered.png"));
+		loadimage(&start_click, _T("img/ui_start_pushed.png"));
+		loadimage(&quit_idle, _T("img/ui_quit_idle.png"));
+		loadimage(&quit_hover, _T("img/ui_quit_hovered.png"));
+		loadimage(&quit_click, _T("img/ui_quit_pushed.png"));
 
 		MUSIC::menu_s = MUSIC::engine->addSoundSourceFromFile("msc/menu.mp3");
 		MUSIC::lose_s = MUSIC::engine->addSoundSourceFromFile("msc/lose.mp3");
 		MUSIC::levelup_s = MUSIC::engine->addSoundSourceFromFile("msc/levelup.mp3");
 
+		start_button = BUTTON::button(start, BACKGROUND::width / 2 - 200, BACKGROUND::height - 144, &start_idle, &start_hover, &start_click);
+		quit_button = BUTTON::button(quit, BACKGROUND::width / 2 +200, BACKGROUND::height - 144, &quit_idle, &quit_hover, &quit_click);
+		buttons.push_back(&start_button);
+		buttons.push_back(&quit_button);
+
 		enter();
 	}
 
 	void initialize() {
-
+		text_o = L"";
+		BUTTON::disable(buttons);
 	}
 
 	void update(int frame) {
@@ -603,7 +636,7 @@ namespace COVER {
 	}
 
 	void draw(int frame) {
-		if (lost) {
+		if (!running) {
 			putimageAlpha(0, 0, &cover);
 		}
 		else {
@@ -630,18 +663,20 @@ namespace COVER {
 				outtextxy(x, y, &text_o[0]);
 			}
 		}
+		BUTTON::draw(buttons);
 	}
 
 	void peek(ExMessage* msg) {
-		if (lost) {
-			if (msg->message == WM_LBUTTONDOWN) {
-				lost = false;
-				running = true;
-				frame_display = 0;
-				::initialize();
-			}
+		if (msg->message == WM_MOUSEMOVE) {
+			BUTTON::move(msg->x, msg->y, buttons);
 		}
-		else {
+		if (msg->message == WM_LBUTTONDOWN) {
+			BUTTON::click(msg->x, msg->y, buttons);
+		}
+		if (msg->message == WM_LBUTTONUP) {
+			BUTTON::release(buttons);
+		}
+		if (running) {
 			if (msg->message == WM_KEYDOWN) {
 				if (msg->vkcode == 0x1B) { // ESC
 					lose();
@@ -651,7 +686,6 @@ namespace COVER {
 	}
 
 	void lose(int wait, bool music) {
-		lost = true;
 		running = false;
 		if (music) {
 			MUSIC::lose = MUSIC::engine->play2D(MUSIC::lose_s, false, false, true);
@@ -661,6 +695,7 @@ namespace COVER {
 		MUSIC::bgm->stop();
 		MUSIC::menu = MUSIC::engine->play2D(MUSIC::menu_s, true, false, true);
 		text_o = L"";
+		BUTTON::enable(buttons);
 	}
 
 	void level_up(int score) {
@@ -908,7 +943,7 @@ int main() {
 
 	ExMessage msg;
 
-	while (IsWindow(BACKGROUND::hwnd)) {
+	while (IsWindow(BACKGROUND::hwnd) && !COVER::exit) {
 
 		start = GetTickCount();
 
